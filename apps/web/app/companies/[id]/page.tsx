@@ -8,8 +8,9 @@ import { AddRoleButton } from "./add-role-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
-  const companyId = parseInt(params.id, 10);
+export default async function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const companyId = parseInt(id, 10);
   if (isNaN(companyId)) notFound();
 
   const [company] = await db.select().from(companies).where(eq(companies.id, companyId));

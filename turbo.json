@@ -1,6 +1,18 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [".env"],
+  "globalEnv": [
+    "DATABASE_URL",
+    "NEON_AUTH_URL",
+    "NEON_API_KEY",
+    "RESEND_API_KEY",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "NEXT_PUBLIC_APP_URL",
+    "INNGEST_EVENT_KEY",
+    "INNGEST_SIGNING_KEY",
+    "DIGEST_EMAIL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

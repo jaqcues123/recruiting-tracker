@@ -9,8 +9,9 @@ import { RoleStatusSelect } from "./role-status-select";
 
 export const dynamic = "force-dynamic";
 
-export default async function RoleDetailPage({ params }: { params: { id: string } }) {
-  const roleId = parseInt(params.id, 10);
+export default async function RoleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const roleId = parseInt(id, 10);
   if (isNaN(roleId)) notFound();
 
   const [role] = await db.select().from(roles).where(eq(roles.id, roleId));

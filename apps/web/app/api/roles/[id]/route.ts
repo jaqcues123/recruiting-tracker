@@ -15,15 +15,17 @@ const updateSchema = z.object({
   archived: z.boolean().optional(),
 });
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await params;
+  const id = parseInt(rawId, 10);
   const [role] = await db.select().from(roles).where(eq(roles.id, id));
   if (!role) return NextResponse.json({ data: null, error: "Not found" }, { status: 404 });
   return NextResponse.json({ data: role, error: null });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await params;
+  const id = parseInt(rawId, 10);
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
@@ -43,8 +45,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ data: updated, error: null });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await params;
+  const id = parseInt(rawId, 10);
   await db.delete(roles).where(eq(roles.id, id));
   return NextResponse.json({ data: { id }, error: null });
 }
