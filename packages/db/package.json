@@ -1,0 +1,23 @@
+{
+  "name": "@recruiting/db",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema/index.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "drizzle-orm": "^0.36.4"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.28.1",
+    "typescript": "^5.6.3"
+  }
+}
