@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Building2,
+  Briefcase,
   CalendarDays,
-  Users,
   ClipboardList,
   Settings,
 } from "lucide-react";
@@ -15,9 +14,8 @@ import { SignOutButton } from "./sign-out-button";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/companies", label: "Companies", icon: Building2 },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/crm", label: "Networking", icon: Users },
   { href: "/tasks", label: "Due Outs", icon: ClipboardList },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -61,8 +59,11 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card flex items-stretch h-16 safe-area-bottom">
+      {/* Mobile bottom tab bar — solid background so content doesn't bleed through on scroll */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t flex items-stretch h-16 safe-area-bottom"
+        style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
+      >
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
