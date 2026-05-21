@@ -84,7 +84,7 @@ export const dailyReminder = inngest.createFunction(
       }
 
       await resend.emails.send({
-        from: "recruiting@yourdomain.com",
+        from: "onboarding@resend.dev",
         to: TO_EMAIL,
         subject: `Recruiting Digest — ${now.toDateString()}`,
         html: lines.join(""),
