@@ -15,7 +15,7 @@ export const dailyReminder = inngest.createFunction(
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const [overdueTasks, todayTasks, followups] = await step.run("fetch-data", async () => {
+    const { overdue: overdueTasks, today: todayTasks, followups } = await step.run("fetch-data", async () => {
       const overdue = await db
         .select({
           title: checklistItems.title,
