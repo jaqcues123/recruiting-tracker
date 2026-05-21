@@ -59,7 +59,7 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Meta */}
-      <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <div>
           <p className="text-muted-foreground">Deadline</p>
           <p className="font-medium">{formatDate(role.applicationDeadline)}</p>

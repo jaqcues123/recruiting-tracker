@@ -38,10 +38,10 @@ export function AddContactButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg space-y-4"
+            className="w-full sm:max-w-md rounded-t-2xl sm:rounded-lg bg-white p-6 shadow-lg space-y-4 max-h-[90vh] overflow-y-auto"
           >
             <h2 className="text-lg font-semibold">Add Contact</h2>
             <div>

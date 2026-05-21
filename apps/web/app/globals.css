@@ -95,3 +95,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* iPhone safe area support */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
