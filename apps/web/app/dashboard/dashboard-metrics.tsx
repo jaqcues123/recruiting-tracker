@@ -44,7 +44,7 @@ const cards = [
 
 export function DashboardMetrics({ metrics }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map(({ key, label, icon: Icon, color, bg }) => (
         <div key={key} className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="flex items-center gap-3">

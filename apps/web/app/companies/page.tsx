@@ -30,8 +30,8 @@ export default async function CompaniesPage() {
         <AddCompanyButton />
       </div>
 
-      <div className="rounded-lg border bg-card shadow-sm">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
+        <table className="w-full text-sm min-w-[480px]">
           <thead>
             <tr className="border-b bg-muted/50 text-left">
               <th className="px-4 py-3 font-medium">Company</th>
