@@ -7,10 +7,24 @@ const createSchema = z.object({
   roleId: z.number().int().optional(),
   title: z.string().min(1),
   eventType: z
-    .enum(["deadline", "interview", "reminder", "followup", "info_session", "other"])
+    .enum([
+      "phone_screen",
+      "case_interview",
+      "final_round",
+      "networking",
+      "deadline",
+      "milestone",
+      "note",
+      "info_session",
+      "interview",
+      "reminder",
+      "followup",
+      "other",
+    ])
     .default("other"),
   startAt: z.string().datetime(),
   endAt: z.string().datetime().nullish(),
+  notes: z.string().optional(),
 });
 
 export async function GET() {

@@ -83,6 +83,8 @@ export const contacts = pgTable("contacts", {
   companyId: integer("company_id").references(() => companies.id, {
     onDelete: "set null",
   }),
+  // Optional: ties a contact to a specific role (role-specific networking)
+  roleId: integer("role_id").references(() => roles.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }),
   email: varchar("email", { length: 255 }),
@@ -118,11 +120,18 @@ export const interactions = pgTable("interactions", {
 
 // ─── events ───────────────────────────────────────────────────────────────────
 export const eventTypeEnum = [
+  "phone_screen",
+  "case_interview",
+  "final_round",
+  "networking",
   "deadline",
+  "milestone",
+  "note",
+  "info_session",
+  // legacy values kept for backward compat
   "interview",
   "reminder",
   "followup",
-  "info_session",
   "other",
 ] as const;
 export type EventType = (typeof eventTypeEnum)[number];
@@ -134,6 +143,7 @@ export const events = pgTable("events", {
   eventType: varchar("event_type", { length: 50 }).notNull().default("other"),
   startAt: timestamp("start_at").notNull(),
   endAt: timestamp("end_at"),
+  notes: text("notes"),
   externalCalendarId: text("external_calendar_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

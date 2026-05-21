@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { interactions, contacts } from "@recruiting/db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -11,6 +11,19 @@ const createSchema = z.object({
   interactionDate: z.string().datetime().optional(),
   nextFollowup: z.string().datetime().nullish(),
 });
+
+export async function GET(req: NextRequest) {
+  const contactId = req.nextUrl.searchParams.get("contactId");
+  if (!contactId) {
+    return NextResponse.json({ data: [], error: null });
+  }
+  const rows = await db
+    .select()
+    .from(interactions)
+    .where(eq(interactions.contactId, parseInt(contactId, 10)))
+    .orderBy(desc(interactions.interactionDate));
+  return NextResponse.json({ data: rows, error: null });
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -28,7 +41,7 @@ export async function POST(req: NextRequest) {
     })
     .returning();
 
-  // Update lastContacted on the contact
+  // Update lastContacted on the contact, and nextFollowup if provided
   await db
     .update(contacts)
     .set({

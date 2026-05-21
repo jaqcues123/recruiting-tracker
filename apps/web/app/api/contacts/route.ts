@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const createSchema = z.object({
   companyId: z.number().int().optional(),
+  roleId: z.number().int().optional(),
   name: z.string().min(1),
   title: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),

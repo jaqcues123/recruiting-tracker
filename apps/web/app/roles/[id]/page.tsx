@@ -1,10 +1,12 @@
 import { db } from "@/lib/db";
 import { checklistItems, companies, contacts, events, roleChecklists, roles } from "@recruiting/db";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ROLE_STATUS_COLORS, formatDate } from "@recruiting/utils";
+import { formatDate } from "@recruiting/utils";
 import { ChecklistSection } from "./checklist-section";
+import { ContactsSection } from "./contacts-section";
+import { TimelineSection } from "./timeline-section";
 import { RoleStatusSelect } from "./role-status-select";
 
 export const dynamic = "force-dynamic";
@@ -32,27 +34,39 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
         .orderBy(checklistItems.sortOrder)
     : [];
 
-  const relatedContacts = await db
+  // Role-specific contacts (added from this role page)
+  const roleContacts = await db
     .select()
     .from(contacts)
-    .where(eq(contacts.companyId, role.companyId));
+    .where(eq(contacts.roleId, roleId));
 
-  const roleEvents = await db.select().from(events).where(eq(events.roleId, roleId));
+  // Company-wide contacts that aren't tied to a specific role
+  const companyContacts = await db
+    .select()
+    .from(contacts)
+    .where(and(eq(contacts.companyId, role.companyId), isNull(contacts.roleId)));
+
+  const roleEvents = await db
+    .select()
+    .from(events)
+    .where(eq(events.roleId, roleId))
+    .orderBy(events.startAt);
 
   return (
     <div className="space-y-6 max-w-3xl">
+      {/* Breadcrumb + header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-          <Link href="/companies" className="hover:underline">Companies</Link>
-          <span>/</span>
-          <Link href={`/companies/${company?.id}`} className="hover:underline">{company?.name}</Link>
+          <Link href="/jobs" className="hover:underline">Jobs</Link>
           <span>/</span>
           <span>{role.title}</span>
         </div>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{role.title}</h1>
-            <p className="text-muted-foreground">{company?.name}{role.location ? ` · ${role.location}` : ""}</p>
+            <p className="text-muted-foreground">
+              {company?.name}{role.location ? ` · ${role.location}` : ""}
+            </p>
           </div>
           <RoleStatusSelect roleId={role.id} currentStatus={role.status} />
         </div>
@@ -66,12 +80,19 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
         </div>
         <div>
           <p className="text-muted-foreground">Priority</p>
-          <p className="font-medium">{role.priority === 1 ? "High" : role.priority === 2 ? "Medium" : "Low"}</p>
+          <p className="font-medium">
+            {role.priority === 1 ? "High" : role.priority === 2 ? "Medium" : "Low"}
+          </p>
         </div>
         {role.jobUrl && (
           <div className="col-span-2">
             <p className="text-muted-foreground">Job Posting</p>
-            <a href={role.jobUrl} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline truncate block">
+            <a
+              href={role.jobUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-primary hover:underline truncate block"
+            >
               View posting
             </a>
           </div>
@@ -85,46 +106,33 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
       {/* Checklist */}
       <ChecklistSection roleId={roleId} checklist={checklist ?? null} items={items} />
 
-      {/* Contacts */}
-      <div className="rounded-lg border bg-card shadow-sm">
-        <div className="border-b px-4 py-3 font-semibold">
-          Contacts at {company?.name} ({relatedContacts.length})
-        </div>
-        {relatedContacts.length === 0 ? (
-          <p className="px-4 py-4 text-sm text-muted-foreground">No contacts logged yet.</p>
-        ) : (
-          <ul>
-            {relatedContacts.map((c) => (
-              <li key={c.id} className="flex items-center justify-between border-b px-4 py-3 last:border-0 text-sm">
-                <div>
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.title}</p>
-                </div>
-                {c.email && (
-                  <a href={`mailto:${c.email}`} className="text-primary hover:underline">{c.email}</a>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Timeline / Events */}
+      <TimelineSection
+        roleId={roleId}
+        initialEvents={roleEvents.map((e) => ({
+          ...e,
+          startAt: e.startAt,
+          endAt: e.endAt,
+          notes: e.notes ?? null,
+        }))}
+      />
 
-      {/* Events */}
-      <div className="rounded-lg border bg-card shadow-sm">
-        <div className="border-b px-4 py-3 font-semibold">Events / Timeline ({roleEvents.length})</div>
-        {roleEvents.length === 0 ? (
-          <p className="px-4 py-4 text-sm text-muted-foreground">No events scheduled.</p>
-        ) : (
-          <ul>
-            {roleEvents.map((ev) => (
-              <li key={ev.id} className="flex items-center justify-between border-b px-4 py-3 last:border-0 text-sm">
-                <p className="font-medium">{ev.title}</p>
-                <span className="text-muted-foreground">{formatDate(ev.startAt)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* Contacts */}
+      <ContactsSection
+        roleId={roleId}
+        companyId={role.companyId}
+        companyName={company?.name ?? ""}
+        roleContacts={roleContacts.map((c) => ({
+          ...c,
+          lastContacted: c.lastContacted,
+          nextFollowup: c.nextFollowup,
+        }))}
+        companyContacts={companyContacts.map((c) => ({
+          ...c,
+          lastContacted: c.lastContacted,
+          nextFollowup: c.nextFollowup,
+        }))}
+      />
     </div>
   );
 }
