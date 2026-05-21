@@ -3,6 +3,8 @@
   "globalDependencies": [".env"],
   "globalEnv": [
     "DATABASE_URL",
+    "NEON_AUTH_BASE_URL",
+    "NEON_AUTH_COOKIE_SECRET",
     "NEON_AUTH_URL",
     "NEON_API_KEY",
     "RESEND_API_KEY",

@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "./sign-out-button";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -54,8 +55,9 @@ export function Sidebar() {
             </Link>
           ))}
         </nav>
-        <div className="border-t p-4">
+        <div className="border-t p-4 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Recruiting OS v0.1</p>
+          <SignOutButton />
         </div>
       </aside>
 
