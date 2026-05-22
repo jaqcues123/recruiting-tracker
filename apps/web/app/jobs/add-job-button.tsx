@@ -90,10 +90,11 @@ export function AddJobButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/20">
           <form
             onSubmit={handleSubmit}
-            className="w-full sm:max-w-md rounded-t-2xl sm:rounded-lg bg-card p-6 shadow-lg space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full sm:max-w-md rounded-t-2xl sm:rounded-lg bg-card p-6 pb-safe shadow-xl space-y-4 max-h-[85vh] overflow-y-auto"
+            style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
           >
             <h2 className="text-lg font-semibold">Add Job</h2>
 
