@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { checklistItems, companies, contacts, events, roleChecklists, roles } from "@recruiting/db";
-import { eq, and, isNull } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { and, eq, isNull } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { formatDate } from "@recruiting/utils";
 import { ChecklistSection } from "./checklist-section";
@@ -9,15 +9,19 @@ import { ContactsSection } from "./contacts-section";
 import { TimelineSection } from "./timeline-section";
 import { RoleStatusSelect } from "./role-status-select";
 import { RolePrioritySelect } from "./role-priority-select";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
 
 export const dynamic = "force-dynamic";
 
 export default async function RoleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/auth/sign-in");
+
   const { id } = await params;
   const roleId = parseInt(id, 10);
   if (isNaN(roleId)) notFound();
 
-  const [role] = await db.select().from(roles).where(eq(roles.id, roleId));
+  const [role] = await db.select().from(roles).where(and(eq(roles.id, roleId), eq(roles.userId, userId)));
   if (!role) notFound();
 
   const [company] = await db.select().from(companies).where(eq(companies.id, role.companyId));
@@ -39,18 +43,18 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
   const roleContacts = await db
     .select()
     .from(contacts)
-    .where(eq(contacts.roleId, roleId));
+    .where(and(eq(contacts.roleId, roleId), eq(contacts.userId, userId)));
 
   // Company-wide contacts that aren't tied to a specific role
   const companyContacts = await db
     .select()
     .from(contacts)
-    .where(and(eq(contacts.companyId, role.companyId), isNull(contacts.roleId)));
+    .where(and(eq(contacts.companyId, role.companyId), isNull(contacts.roleId), eq(contacts.userId, userId)));
 
   const roleEvents = await db
     .select()
     .from(events)
-    .where(eq(events.roleId, roleId))
+    .where(and(eq(events.roleId, roleId), eq(events.userId, userId)))
     .orderBy(events.startAt);
 
   return (

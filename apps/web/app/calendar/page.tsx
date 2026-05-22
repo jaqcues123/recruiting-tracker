@@ -1,11 +1,16 @@
 import { db } from "@/lib/db";
 import { events, roles, companies } from "@recruiting/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { CalendarView } from "./calendar-view";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function CalendarPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/auth/sign-in");
+
   const allEvents = await db
     .select({
       id: events.id,
@@ -18,7 +23,8 @@ export default async function CalendarPage() {
     })
     .from(events)
     .leftJoin(roles, eq(events.roleId, roles.id))
-    .leftJoin(companies, eq(roles.companyId, companies.id));
+    .leftJoin(companies, eq(roles.companyId, companies.id))
+    .where(eq(events.userId, userId));
 
   const serialized = allEvents.map((e) => ({
     ...e,

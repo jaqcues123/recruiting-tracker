@@ -19,6 +19,7 @@ export const users = pgTable("users", {
 // ─── companies ────────────────────────────────────────────────────────────────
 export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   name: varchar("name", { length: 255 }).notNull(),
   industry: varchar("industry", { length: 100 }),
   notes: text("notes"),
@@ -40,6 +41,7 @@ export type RoleStatus = (typeof roleStatusEnum)[number];
 
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   companyId: integer("company_id")
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" }),
@@ -80,6 +82,7 @@ export const checklistItems = pgTable("checklist_items", {
 // ─── contacts ─────────────────────────────────────────────────────────────────
 export const contacts = pgTable("contacts", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   companyId: integer("company_id").references(() => companies.id, {
     onDelete: "set null",
   }),
@@ -138,6 +141,7 @@ export type EventType = (typeof eventTypeEnum)[number];
 
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   roleId: integer("role_id").references(() => roles.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(),
   eventType: varchar("event_type", { length: 50 }).notNull().default("other"),

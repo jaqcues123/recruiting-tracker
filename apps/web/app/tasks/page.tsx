@@ -1,12 +1,17 @@
 import { db } from "@/lib/db";
 import { checklistItems, roleChecklists, roles, companies } from "@recruiting/db";
-import { and, asc, eq, isNotNull, lt, lte } from "drizzle-orm";
-import { formatDate, getDueStatus } from "@recruiting/utils";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
+import { formatDate } from "@recruiting/utils";
 import Link from "next/link";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function TasksPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/auth/sign-in");
+
   const now = new Date();
   const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -25,7 +30,7 @@ export default async function TasksPage() {
     .innerJoin(roles, eq(roleChecklists.roleId, roles.id))
     .leftJoin(companies, eq(roles.companyId, companies.id))
     .where(
-      and(eq(checklistItems.completed, false), isNotNull(checklistItems.dueDate))
+      and(eq(checklistItems.completed, false), isNotNull(checklistItems.dueDate), eq(roles.userId, userId))
     )
     .orderBy(asc(checklistItems.dueDate));
 

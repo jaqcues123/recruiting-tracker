@@ -1,13 +1,18 @@
 import { db } from "@/lib/db";
 import { companies, roles } from "@recruiting/db";
-import { eq, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import Link from "next/link";
 import { ROLE_STATUS_COLORS, formatDate } from "@recruiting/utils";
 import { AddJobButton } from "./add-job-button";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function JobsPage() {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/auth/sign-in");
+
   const rows = await db
     .select({
       id: roles.id,
@@ -21,7 +26,7 @@ export default async function JobsPage() {
     })
     .from(roles)
     .leftJoin(companies, eq(roles.companyId, companies.id))
-    .where(ne(roles.archived, true))
+    .where(and(ne(roles.archived, true), eq(roles.userId, userId)))
     .orderBy(roles.applicationDeadline, roles.createdAt);
 
   const active = rows.filter((r) => !["Offer", "Closed"].includes(r.status));

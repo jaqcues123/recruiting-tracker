@@ -1,15 +1,16 @@
 import { db } from "@/lib/db";
-import { checklistItems, companies, interactions, roles } from "@recruiting/db";
-import { and, count, eq, gte, lt, lte, ne } from "drizzle-orm";
+import { checklistItems, contacts, interactions, roles, roleChecklists } from "@recruiting/db";
+import { and, count, eq, gte, lt, ne } from "drizzle-orm";
 import { DashboardMetrics } from "./dashboard-metrics";
 import { UpcomingDeadlines } from "./upcoming-deadlines";
 import { DueOutsSummary } from "./due-outs-summary";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-async function getMetrics() {
+async function getMetrics(userId: string) {
   const now = new Date();
-  const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   const [
     rolesTargeted,
@@ -17,7 +18,7 @@ async function getMetrics() {
     overdueTasks,
     networkingCalls,
   ] = await Promise.all([
-    db.select({ count: count() }).from(roles).where(eq(roles.archived, false)),
+    db.select({ count: count() }).from(roles).where(and(eq(roles.archived, false), eq(roles.userId, userId))),
     db
       .select({ count: count() })
       .from(roles)
@@ -25,17 +26,26 @@ async function getMetrics() {
         and(
           ne(roles.status, "Targeted"),
           ne(roles.status, "Networking"),
-          eq(roles.archived, false)
+          eq(roles.archived, false),
+          eq(roles.userId, userId)
         )
       ),
     db
       .select({ count: count() })
       .from(checklistItems)
-      .where(and(eq(checklistItems.completed, false), lt(checklistItems.dueDate, now))),
+      .innerJoin(roleChecklists, eq(checklistItems.checklistId, roleChecklists.id))
+      .innerJoin(roles, eq(roleChecklists.roleId, roles.id))
+      .where(and(eq(checklistItems.completed, false), lt(checklistItems.dueDate, now), eq(roles.userId, userId))),
     db
       .select({ count: count() })
       .from(interactions)
-      .where(gte(interactions.interactionDate, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000))),
+      .innerJoin(contacts, eq(interactions.contactId, contacts.id))
+      .where(
+        and(
+          eq(contacts.userId, userId),
+          gte(interactions.interactionDate, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000))
+        )
+      ),
   ]);
 
   return {
@@ -47,7 +57,10 @@ async function getMetrics() {
 }
 
 export default async function DashboardPage() {
-  const metrics = await getMetrics();
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/auth/sign-in");
+
+  const metrics = await getMetrics(userId);
 
   return (
     <div className="space-y-6">
@@ -59,8 +72,8 @@ export default async function DashboardPage() {
       <DashboardMetrics metrics={metrics} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DueOutsSummary />
-        <UpcomingDeadlines />
+        <DueOutsSummary userId={userId} />
+        <UpcomingDeadlines userId={userId} />
       </div>
     </div>
   );
