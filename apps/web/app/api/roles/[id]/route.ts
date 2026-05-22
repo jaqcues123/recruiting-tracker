@@ -9,7 +9,7 @@ const updateSchema = z.object({
   location: z.string().optional(),
   jobUrl: z.string().optional(),
   status: z.string().optional(),
-  priority: z.number().int().min(1).max(3).optional(),
+  priority: z.coerce.number().int().min(1).max(3).optional(),
   applicationDeadline: z.string().datetime().nullish(),
   notes: z.string().optional(),
   archived: z.boolean().optional(),
@@ -24,25 +24,36 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id: rawId } = await params;
-  const id = parseInt(rawId, 10);
-  const body = await req.json();
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ data: null, error: parsed.error.message }, { status: 400 });
+  try {
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
+    const body = await req.json();
+    const parsed = updateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { data: null, error: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+    const { applicationDeadline, ...rest } = parsed.data;
+    const [updated] = await db
+      .update(roles)
+      .set({
+        ...rest,
+        ...(applicationDeadline !== undefined
+          ? { applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null }
+          : {}),
+      })
+      .where(eq(roles.id, id))
+      .returning();
+    return NextResponse.json({ data: updated, error: null });
+  } catch (err) {
+    console.error("PATCH /api/roles/[id] error:", err);
+    return NextResponse.json(
+      { data: null, error: String(err) },
+      { status: 500 }
+    );
   }
-  const { applicationDeadline, ...rest } = parsed.data;
-  const [updated] = await db
-    .update(roles)
-    .set({
-      ...rest,
-      ...(applicationDeadline !== undefined
-        ? { applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null }
-        : {}),
-    })
-    .where(eq(roles.id, id))
-    .returning();
-  return NextResponse.json({ data: updated, error: null });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

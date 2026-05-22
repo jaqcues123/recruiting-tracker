@@ -17,7 +17,7 @@ export function RolePrioritySelect({
   currentPriority: number | null;
 }) {
   const [priority, setPriority] = useState(currentPriority ?? 3);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | false>(false);
   const router = useRouter();
 
   async function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -33,9 +33,10 @@ export function RolePrioritySelect({
     });
 
     if (!res.ok) {
-      // Revert optimistic update if the save failed
+      const body = await res.json().catch(() => ({}));
+      console.error("Priority save failed", res.status, body);
       setPriority(prev);
-      setError(true);
+      setError(`${res.status}: ${JSON.stringify(body.error ?? body)}`);
       return;
     }
 
@@ -56,7 +57,7 @@ export function RolePrioritySelect({
         ))}
       </select>
       {error && (
-        <p className="text-xs text-red-500 mt-1">Failed to save — please try again.</p>
+        <p className="text-xs text-red-500 mt-1">Save failed: {error}</p>
       )}
     </div>
   );
