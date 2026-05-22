@@ -18,6 +18,7 @@ export default function NewJobPage() {
   const [location, setLocation] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [status, setStatus] = useState("Targeted");
+  const [priority, setPriority] = useState(2);
   const [deadline, setDeadline] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function NewJobPage() {
         location: location.trim() || undefined,
         jobUrl: jobUrl.trim() || undefined,
         status,
+        priority,
         applicationDeadline: deadline ? new Date(deadline).toISOString() : null,
       }),
     });
@@ -120,6 +122,19 @@ export default function NewJobPage() {
             {roleStatusEnum.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Priority</label>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(parseInt(e.target.value, 10))}
+            className="w-full rounded-md border px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value={1}>High</option>
+            <option value={2}>Medium</option>
+            <option value={3}>Low</option>
           </select>
         </div>
 
