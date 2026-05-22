@@ -24,68 +24,102 @@ export default async function JobsPage() {
     .where(ne(roles.archived, true))
     .orderBy(roles.applicationDeadline, roles.createdAt);
 
-  const byStatus = (s: string) => rows.filter((r) => r.status === s);
   const active = rows.filter((r) => !["Offer", "Closed"].includes(r.status));
-  const closed = rows.filter((r) => ["Offer", "Closed"].includes(r.status));
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Jobs</h1>
-          <p className="text-muted-foreground">{active.length} active · {rows.length} total</p>
+          <p className="text-muted-foreground">
+            {active.length} active · {rows.length} total
+          </p>
         </div>
         <AddJobButton />
       </div>
 
-      <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
-        <table className="w-full text-sm min-w-[520px]">
-          <thead>
-            <tr className="border-b bg-muted/50 text-left">
-              <th className="px-4 py-3 font-medium">Company</th>
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Stage</th>
-              <th className="px-4 py-3 font-medium">Deadline</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                  No jobs yet. Add your first one!
-                </td>
-              </tr>
-            )}
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                  {r.companyName}
-                </td>
-                <td className="px-4 py-3">
-                  <Link href={`/roles/${r.id}`} className="font-medium hover:underline">
-                    {r.title}
-                  </Link>
-                  {r.location && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">{r.location}</span>
+      {rows.length === 0 && (
+        <div className="rounded-lg border bg-card shadow-sm px-4 py-8 text-center text-sm text-muted-foreground">
+          No jobs yet. Add your first one!
+        </div>
+      )}
+
+      {/* Mobile: tappable card list (no horizontal scroll) */}
+      {rows.length > 0 && (
+        <ul className="md:hidden rounded-lg border bg-card shadow-sm divide-y">
+          {rows.map((r) => (
+            <li key={r.id}>
+              <Link
+                href={`/roles/${r.id}`}
+                className="flex items-center justify-between px-4 py-3.5 active:bg-muted/40"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{r.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {r.companyName}
+                    {r.location ? ` · ${r.location}` : ""}
+                  </p>
+                  {r.applicationDeadline && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Due {formatDate(r.applicationDeadline)}
+                    </p>
                   )}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      ROLE_STATUS_COLORS[r.status] ?? "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                  {formatDate(r.applicationDeadline)}
-                </td>
+                </div>
+                <span
+                  className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    ROLE_STATUS_COLORS[r.status] ?? "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {r.status}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Desktop: full table */}
+      {rows.length > 0 && (
+        <div className="hidden md:block rounded-lg border bg-card shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50 text-left">
+                <th className="px-4 py-3 font-medium">Company</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Stage</th>
+                <th className="px-4 py-3 font-medium">Deadline</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
+                  <td className="px-4 py-3 text-muted-foreground">{r.companyName}</td>
+                  <td className="px-4 py-3">
+                    <Link href={`/roles/${r.id}`} className="font-medium hover:underline">
+                      {r.title}
+                    </Link>
+                    {r.location && (
+                      <span className="ml-1.5 text-xs text-muted-foreground">{r.location}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        ROLE_STATUS_COLORS[r.status] ?? "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(r.applicationDeadline)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
