@@ -8,6 +8,7 @@ import { ChecklistSection } from "./checklist-section";
 import { ContactsSection } from "./contacts-section";
 import { TimelineSection } from "./timeline-section";
 import { RoleStatusSelect } from "./role-status-select";
+import { RolePrioritySelect } from "./role-priority-select";
 
 export const dynamic = "force-dynamic";
 
@@ -79,10 +80,8 @@ export default async function RoleDetailPage({ params }: { params: Promise<{ id:
           <p className="font-medium">{formatDate(role.applicationDeadline)}</p>
         </div>
         <div>
-          <p className="text-muted-foreground">Priority</p>
-          <p className="font-medium">
-            {role.priority === 1 ? "High" : role.priority === 2 ? "Medium" : "Low"}
-          </p>
+          <p className="text-muted-foreground mb-1">Priority</p>
+          <RolePrioritySelect roleId={role.id} currentPriority={role.priority} />
         </div>
         {role.jobUrl && (
           <div className="col-span-2">
