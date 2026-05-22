@@ -4,7 +4,7 @@ import { and, asc, eq, gte, isNotNull, lte } from "drizzle-orm";
 import { formatDate } from "@recruiting/utils";
 import Link from "next/link";
 
-export async function UpcomingDeadlines() {
+export async function UpcomingDeadlines({ userId }: { userId: string }) {
   const now = new Date();
   const twoWeeksOut = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
@@ -22,7 +22,8 @@ export async function UpcomingDeadlines() {
         isNotNull(roles.applicationDeadline),
         gte(roles.applicationDeadline, now),
         lte(roles.applicationDeadline, twoWeeksOut),
-        eq(roles.archived, false)
+        eq(roles.archived, false),
+        eq(roles.userId, userId)
       )
     )
     .orderBy(asc(roles.applicationDeadline))

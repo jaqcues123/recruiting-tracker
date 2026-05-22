@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { roles, roleChecklists, checklistItems } from "@recruiting/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
 
 const DEFAULT_CHECKLIST_ITEMS = [
   "Resume tailored",
@@ -26,11 +27,21 @@ const createSchema = z.object({
 });
 
 export async function GET() {
-  const rows = await db.select().from(roles).where(eq(roles.archived, false)).orderBy(roles.createdAt);
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+
+  const rows = await db
+    .select()
+    .from(roles)
+    .where(and(eq(roles.archived, false), eq(roles.userId, userId)))
+    .orderBy(roles.createdAt);
   return NextResponse.json({ data: rows, error: null });
 }
 
 export async function POST(req: NextRequest) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -42,6 +53,7 @@ export async function POST(req: NextRequest) {
     .insert(roles)
     .values({
       ...rest,
+      userId,
       applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : null,
     })
     .returning();

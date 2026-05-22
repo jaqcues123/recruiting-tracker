@@ -4,7 +4,7 @@ import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
 import { formatDate } from "@recruiting/utils";
 import Link from "next/link";
 
-export async function DueOutsSummary() {
+export async function DueOutsSummary({ userId }: { userId: string }) {
   const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const items = await db
@@ -24,7 +24,8 @@ export async function DueOutsSummary() {
       and(
         eq(checklistItems.completed, false),
         isNotNull(checklistItems.dueDate),
-        lte(checklistItems.dueDate, weekFromNow)
+        lte(checklistItems.dueDate, weekFromNow),
+        eq(roles.userId, userId)
       )
     )
     .orderBy(asc(checklistItems.dueDate))

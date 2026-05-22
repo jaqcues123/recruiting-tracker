@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { events } from "@recruiting/db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth/get-user-id";
 
 const createSchema = z.object({
   roleId: z.number().int().optional(),
@@ -28,11 +30,17 @@ const createSchema = z.object({
 });
 
 export async function GET() {
-  const rows = await db.select().from(events).orderBy(events.startAt);
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+
+  const rows = await db.select().from(events).where(eq(events.userId, userId)).orderBy(events.startAt);
   return NextResponse.json({ data: rows, error: null });
 }
 
 export async function POST(req: NextRequest) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
@@ -43,6 +51,7 @@ export async function POST(req: NextRequest) {
     .insert(events)
     .values({
       ...rest,
+      userId,
       startAt: new Date(startAt),
       endAt: endAt ? new Date(endAt) : null,
     })
